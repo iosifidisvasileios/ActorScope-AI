@@ -1,7 +1,7 @@
 # ADR-006: Use dual memory and reserve Mem0 for distilled durable memory
 
 ## Status
-Accepted
+**Implemented**
 
 ## Context
 The system needs both:
@@ -36,6 +36,16 @@ Rejected because cross-run continuity is one of the system’s explicit goals.
 This separation preserves high-value memory while keeping the simulation explainable.
 
 ## Consequences
-- Retrieval happens before reasoning
-- Persistence happens after the run
+- Retrieval happens before reasoning (`retrieve_memories` node)
+- Persistence happens after the run (`persist_memories` node)
 - Distillation is an explicit architectural step, not an afterthought
+- Memory operations are tracked in observability traces
+- Memory hints are passed into actor interpretations
+- Memory retrieval metadata includes counts and mode information
+- Memory persistence includes distilled counts and status tracking
+
+## Implementation notes
+- Memory retrieval and persistence are now fully integrated into the LangGraph flow
+- Enhanced serializers track memory operations in execution traces
+- Memory context is passed to interpretation nodes for context-aware reasoning
+- Artifacts include memory operation summaries and previews

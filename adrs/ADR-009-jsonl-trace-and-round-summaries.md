@@ -1,7 +1,7 @@
 # ADR-009: Use JSONL trace as canonical observability format with markdown round summaries
 
 ## Status
-Accepted
+**Implemented with enhancements**
 
 ## Context
 The system needs both:
@@ -23,7 +23,10 @@ The trace records:
 - decisions,
 - evaluation outputs,
 - stop decisions,
-- and latency.
+- latency,
+- memory operations (retrieval and persistence),
+- impact estimates,
+- state diff summaries.
 
 The markdown summary is derived from the trace.
 
@@ -41,3 +44,7 @@ This split supports both automated inspection and human understanding.
 - Observability is first-class
 - Round-by-round decision analysis is possible
 - Future tools can parse the trace without depending on the markdown summary
+- Memory operations are fully tracked and visible in traces
+- Enhanced serializers provide detailed state diff information
+- Memory hints and impact estimates are captured for each round
+- Artifacts include comprehensive memory operation summaries
