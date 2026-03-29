@@ -58,6 +58,13 @@ def _render_round_section(round_id: int, events: list[dict]) -> list[str]:
             lines.append("Postures:")
             for actor_id, posture in postures.items():
                 lines.append(f"- {actor_id}: {posture}")
+
+        memory_hints = interpret_event.get("state_diff_summary", {}).get("memory_hints", {})
+        if memory_hints:
+            lines.append("")
+            lines.append("Memory hints passed into interpretation:")
+            for actor_id, memories in memory_hints.items():
+                lines.append(f"- {actor_id}: {memories}")
     else:
         lines.append("No interpretation event recorded.")
     lines.append("")
@@ -72,6 +79,7 @@ def _render_round_section(round_id: int, events: list[dict]) -> list[str]:
             lines.append(f"- action_type: {selected.get('action_type')}")
             lines.append(f"- targets: {selected.get('targets', [])}")
             lines.append(f"- assertiveness_level: {selected.get('assertiveness_level')}")
+
         top_salience = select_event.get("state_diff_summary", {}).get("top_salience_scores", [])
         if top_salience:
             lines.append("")
@@ -85,6 +93,16 @@ def _render_round_section(round_id: int, events: list[dict]) -> list[str]:
     lines.append("### Applied updates")
     if update_event:
         lines.append(update_event.get("summary", "No update summary available."))
+        diff = update_event.get("state_diff_summary", {})
+        impact_estimates = diff.get("impact_estimates", {})
+        if impact_estimates:
+            lines.append("")
+            lines.append("Impact estimates:")
+            for actor_id, impact in impact_estimates.items():
+                lines.append(
+                    f"- {actor_id}: action_type={impact.get('action_type')}, "
+                    f"targets={impact.get('target_actor_ids', [])}"
+                )
     else:
         lines.append("No update event recorded.")
     lines.append("")
@@ -152,11 +170,44 @@ def write_summary_markdown(
             f"- Escalation risk: {final_output.get('escalation_risk')}",
             f"- Cooperation probability: {final_output.get('cooperation_probability')}",
             f"- Resolution probability: {final_output.get('resolution_probability')}",
-            "",
-            "# Round-by-round breakdown",
-            "",
         ]
     )
+
+    retrieve_events = [e for e in trace_events if e.get("node_name") == "retrieve_memories"]
+    if retrieve_events:
+        retrieve_event = retrieve_events[-1]
+        lines.extend([
+            "",
+            "## Memory retrieval",
+            "",
+            retrieve_event.get("summary", "No memory retrieval summary available."),
+        ])
+
+        diff = retrieve_event.get("state_diff_summary", {})
+        actor_preview = diff.get("actor_memory_preview", {})
+        relationship_preview = diff.get("relationship_memory_preview", {})
+        scenario_preview = diff.get("scenario_pattern_memory_preview", [])
+
+        if actor_preview:
+            lines.extend(["", "Actor memory preview:"])
+            for actor_id, memories in actor_preview.items():
+                lines.append(f"- {actor_id}: {memories}")
+
+        if relationship_preview:
+            lines.extend(["", "Relationship memory preview:"])
+            for rel_key, memories in relationship_preview.items():
+                lines.append(f"- {rel_key}: {memories}")
+
+        if scenario_preview:
+            lines.extend(["", "Scenario-pattern memory preview:"])
+            for item in scenario_preview:
+                lines.append(f"- {item}")
+
+    lines.extend([
+        "",
+        "# Round-by-round breakdown",
+        "",
+    ])
 
     if not grouped_events:
         lines.append("No trace events recorded.")
@@ -165,6 +216,25 @@ def write_summary_markdown(
             if round_id <= 0:
                 continue
             lines.extend(_render_round_section(round_id, round_events))
+
+    persist_events = [e for e in trace_events if e.get("node_name") == "persist_memories"]
+    if persist_events:
+        persist_event = persist_events[-1]
+        lines.extend([
+            "",
+            "# Memory persistence",
+            "",
+            persist_event.get("summary", "No persistence summary available."),
+            "",
+            "Persistence details:",
+        ])
+        diff = persist_event.get("state_diff_summary", {})
+        lines.append(f"- persistence_mode: {diff.get('persistence_mode')}")
+        lines.append(f"- persistence_status: {diff.get('persistence_status')}")
+        lines.append(f"- persisted_count: {diff.get('persisted_count')}")
+        lines.append(f"- distilled_actor_memory_count: {diff.get('distilled_actor_memory_count')}")
+        lines.append(f"- distilled_relationship_memory_count: {diff.get('distilled_relationship_memory_count')}")
+        lines.append(f"- distilled_scenario_pattern_memory_count: {diff.get('distilled_scenario_pattern_memory_count')}")
 
     output_path.write_text("\n".join(lines), encoding="utf-8")
 

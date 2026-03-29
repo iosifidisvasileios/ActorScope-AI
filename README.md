@@ -83,6 +83,33 @@ Organizations, negotiations, alliances, political systems, and geopolitical sett
 
 ---
 
+## Available use cases
+
+### Built-in scenarios
+
+#### 1. US-Iran Regional Crisis (default)
+A complex geopolitical scenario involving:
+- **11 actors**: US, Iran, Israel, Saudi Arabia, Pakistan, Turkey, Egypt, UAE, Kuwait, Bahrain
+- **Multi-layered relationships**: Adversarial, aligned, mediation tracks, Gulf security coordination
+- **Key dynamics**: Military retaliation, maritime coercion, diplomatic mediation, infrastructure protection
+- **Memory integration**: Cross-scenario learning about negotiation patterns and escalation risks
+
+#### 2. Demo Organization
+A simpler organizational scenario with:
+- **3 actors**: Manager, Direct Report, Peer
+- **Workplace dynamics**: Priority misalignment, trust tension, delivery pressure
+- **Learning**: Relationship patterns and communication effectiveness
+
+### Custom scenarios
+
+Create your own scenarios by providing JSON input with:
+- Environment definition (rules, norms, resources)
+- Scenario setup (trigger, context, success/failure conditions)
+- Actor profiles (objectives, priorities, constraints, capabilities)
+- Relationship matrices (trust, alignment, conflict, dependency, influence)
+
+---
+
 ## Example scenario
 
 A labor negotiation between company leadership, union representatives, department managers, and government observers.
@@ -181,19 +208,37 @@ MEM0_SEARCH_THRESHOLD=0.3
 
 ### 5. Run the demo
 
+#### Option A: Geopolitical crisis simulation (default)
 ```bash
 poetry run python main.py
+```
+
+#### Option B: Organizational demo
+```bash
+poetry run python usecases/run_usecase.py --usecase demo_organization
+```
+
+#### Option C: Custom scenario
+```bash
+poetry run python usecases/run_usecase.py --input-json path/to/your/scenario.json
+```
+
+#### Export LangGraph visualization
+```bash
+poetry run python export_langgraph_figure.py
 ```
 
 ### 6. Inspect artifacts
 
 After the run, inspect:
 
-- `artifacts/trace.jsonl`
-- `artifacts/final_output.json`
-- `artifacts/summary.md`
+- `artifacts/trace.jsonl` — Complete execution trace with memory operations
+- `artifacts/final_output.json` — Structured results and actor standpoints
+- `artifacts/summary.md` — Human-readable simulation summary
+- `artifacts/langgraph_graph.png` — Visual graph representation (when available)
+- `artifacts/langgraph_graph.mmd` — Mermaid source for the graph
 
-These artifacts make it possible to inspect not only the final outcome, but how the system got there.
+These artifacts make it possible to inspect not only the final outcome, but how the system got there, including memory retrieval and persistence operations.
 
 ---
 
@@ -329,19 +374,23 @@ So you can inspect not only the result, but the decision path that produced it.
 ├── prompts/
 ├── state_structures/
 ├── tests/
+├── usecases/
 ├── main.py
-└── pyproject.toml
+├── export_langgraph_figure.py
+├── pyproject.toml
+└── LICENSE
 ```
 
 ### Notable packages
 
 - `state_structures/` — domain models and runtime graph state
 - `graph/` — LangGraph assembly and routing
-- `nodes/` — simulation nodes
+- `nodes/` — simulation nodes with memory integration
 - `prompts/` — typed prompt contracts and prompt builders
 - `llm/` — Ollama wrappers and structured generation
 - `memory/` — Mem0 retrieval, distillation, persistence
-- `observability/` — trace models and artifact generation
+- `observability/` — enhanced trace models and artifact generation
+- `usecases/` — built-in scenario definitions and execution utilities
 
 ---
 
@@ -357,6 +406,10 @@ ActorScope-AI is currently in an architecture-first implementation phase.
 - deterministic update and stop logic
 - decision trace and round summaries
 - decision-level ADRs
+- **enhanced memory integration** with retrieval and persistence
+- **improved observability** with memory operation tracking
+- **multiple built-in scenarios** including geopolitical crisis
+- **graph visualization export** capabilities
 
 ### Still evolving
 
@@ -365,6 +418,8 @@ ActorScope-AI is currently in an architecture-first implementation phase.
 - stronger test coverage
 - future UI and interaction layers
 - more advanced evaluation logic
+- **scenario pattern recognition** across runs
+- **adaptive memory strategies** for different domain types
 
 ---
 

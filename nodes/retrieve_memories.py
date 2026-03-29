@@ -10,9 +10,18 @@ from memory.retrieval import (
 )
 from observability.logger import traced_node
 from state_structures.graph_state import GraphState
+from observability.serializers import (
+    summarize_retrieve_memories,
+    diff_retrieve_memories,
+)
 
 
-@traced_node("retrieve_memories", "memory_retrieval")
+@traced_node(
+    "retrieve_memories",
+    "memory_retrieval",
+    summary_fn=summarize_retrieve_memories,
+    state_diff_fn=diff_retrieve_memories,
+)
 def retrieve_memories(state: GraphState) -> dict:
     memory_context = deepcopy(state.get("memory_context", {}))
     run_control = state["run_control"]

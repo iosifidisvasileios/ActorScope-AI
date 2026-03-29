@@ -6,6 +6,7 @@ from typing import Any
 def summarize_interpret_actors(state: dict, result: dict) -> str:
     round_context = result.get("round_context", {})
     interpretations = round_context.get("actor_interpretations", {})
+    actor_memories = state.get("memory_context", {}).get("actor_memories", {})
 
     if not interpretations:
         return "No actor interpretations produced."
@@ -14,24 +15,12 @@ def summarize_interpret_actors(state: dict, result: dict) -> str:
     for actor_id, interpretation in interpretations.items():
         posture = interpretation.get("strategic_posture", "unknown")
         objectives = interpretation.get("current_objectives", [])[:2]
+        has_memory = bool(actor_memories.get(actor_id))
         parts.append(
-            f"{actor_id}: posture={posture}, objectives={objectives}"
+            f"{actor_id}: posture={posture}, objectives={objectives}, memory_used={has_memory}"
         )
 
     return "Actor interpretations generated: " + " | ".join(parts)
-
-
-def diff_interpret_actors(state: dict, result: dict) -> dict[str, Any]:
-    round_context = result.get("round_context", {})
-    interpretations = round_context.get("actor_interpretations", {})
-
-    return {
-        "interpreted_actor_ids": list(interpretations.keys()),
-        "postures": {
-            actor_id: interpretation.get("strategic_posture")
-            for actor_id, interpretation in interpretations.items()
-        },
-    }
 
 
 def summarize_select_actions(state: dict, result: dict) -> str:
@@ -159,4 +148,88 @@ def diff_stop_check(state: dict, result: dict) -> dict[str, Any]:
         "consecutive_low_change_rounds": run_control.get("consecutive_low_change_rounds"),
         "last_conflict_pattern_signature": run_control.get("last_conflict_pattern_signature"),
         "repeated_conflict_pattern_rounds": run_control.get("repeated_conflict_pattern_rounds"),
+    }
+
+
+
+def summarize_retrieve_memories(state: dict, result: dict) -> str:
+    memory_context = result.get("memory_context", {})
+    metadata = memory_context.get("retrieval_metadata", {})
+
+    return (
+        f"Memory retrieval completed: mode={metadata.get('retrieval_mode')}, "
+        f"actor_memory_count={metadata.get('actor_memory_count', 0)}, "
+        f"relationship_memory_count={metadata.get('relationship_memory_count', 0)}, "
+        f"scenario_pattern_memory_count={metadata.get('scenario_pattern_memory_count', 0)}"
+    )
+
+
+def diff_retrieve_memories(state: dict, result: dict) -> dict[str, Any]:
+    memory_context = result.get("memory_context", {})
+
+    actor_memories = memory_context.get("actor_memories", {})
+    relationship_memories = memory_context.get("relationship_memories", {})
+    scenario_pattern_memories = memory_context.get("scenario_pattern_memories", [])
+
+    actor_memory_preview = {
+        actor_id: memories[:2]
+        for actor_id, memories in actor_memories.items()
+        if memories
+    }
+
+    relationship_memory_preview = {
+        rel_key: memories[:2]
+        for rel_key, memories in relationship_memories.items()
+        if memories
+    }
+
+    return {
+        "retrieval_metadata": memory_context.get("retrieval_metadata", {}),
+        "actor_memory_preview": actor_memory_preview,
+        "relationship_memory_preview": relationship_memory_preview,
+        "scenario_pattern_memory_preview": scenario_pattern_memories[:3],
+    }
+
+
+def summarize_persist_memories(state: dict, result: dict) -> str:
+    memory_context = result.get("memory_context", {})
+    metadata = memory_context.get("retrieval_metadata", {})
+
+    return (
+        f"Memory persistence completed: mode={metadata.get('persistence_mode')}, "
+        f"status={metadata.get('persistence_status')}, "
+        f"persisted_count={metadata.get('persisted_count', 0)}"
+    )
+
+
+def diff_persist_memories(state: dict, result: dict) -> dict[str, Any]:
+    memory_context = result.get("memory_context", {})
+    metadata = memory_context.get("retrieval_metadata", {})
+
+    return {
+        "persistence_mode": metadata.get("persistence_mode"),
+        "persistence_status": metadata.get("persistence_status"),
+        "persisted_count": metadata.get("persisted_count", 0),
+        "distilled_actor_memory_count": metadata.get("distilled_actor_memory_count", 0),
+        "distilled_relationship_memory_count": metadata.get("distilled_relationship_memory_count", 0),
+        "distilled_scenario_pattern_memory_count": metadata.get("distilled_scenario_pattern_memory_count", 0),
+    }
+
+def diff_interpret_actors(state: dict, result: dict) -> dict[str, Any]:
+    round_context = result.get("round_context", {})
+    interpretations = round_context.get("actor_interpretations", {})
+
+    actor_memories = state.get("memory_context", {}).get("actor_memories", {})
+
+    return {
+        "interpreted_actor_ids": list(interpretations.keys()),
+        "postures": {
+            actor_id: interpretation.get("strategic_posture")
+            for actor_id, interpretation in interpretations.items()
+        },
+        "memory_hints": {
+            actor_id: actor_memories.get(actor_id, [])[:2]
+            for actor_id in interpretations.keys()
+            if actor_memories.get(actor_id)
+        },
     }

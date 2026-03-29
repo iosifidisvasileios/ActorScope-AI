@@ -10,9 +10,18 @@ from memory.distillation import (
 from memory.mem0_client import Mem0Client
 from observability.logger import traced_node
 from state_structures.graph_state import GraphState
+from observability.serializers import (
+    summarize_persist_memories,
+    diff_persist_memories,
+)
 
 
-@traced_node("persist_memories", "memory_persisted")
+@traced_node(
+    "persist_memories",
+    "memory_persisted",
+    summary_fn=summarize_persist_memories,
+    state_diff_fn=diff_persist_memories,
+)
 def persist_memories(state: GraphState) -> dict:
     memory_context = deepcopy(state["memory_context"])
     retrieval_metadata = memory_context.get("retrieval_metadata", {})
