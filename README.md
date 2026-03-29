@@ -14,7 +14,12 @@
   <img alt="LangGraph" src="https://img.shields.io/badge/orchestration-LangGraph-111827">
   <img alt="Ollama" src="https://img.shields.io/badge/LLM-Ollama-0f766e">
   <img alt="Mem0" src="https://img.shields.io/badge/memory-Mem0-7c3aed">
+  <img alt="Pydantic" src="https://img.shields.io/badge/validation-Pydantic-ff6b6b">
   <img alt="Status" src="https://img.shields.io/badge/status-architecture--first-orange">
+</p>
+
+<p align="center">
+  <img src="git_img.png" alt="Git workflow diagram" width="600">
 </p>
 
 ---
